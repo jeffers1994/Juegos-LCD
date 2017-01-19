@@ -1,0 +1,125 @@
+#include<LiquidCrystal.h>
+LiquidCrystal lcd (9, 8, 7, 6, 5, 4);
+String palabra; 
+int tamanio; 
+int encendido = 1;
+
+void setup() {
+  Serial.begin(9600);
+  lcd.begin(16, 2);
+  attachInterrupt(0, interrumpir, RISING);
+}
+
+void loop() {
+  if (encendido == 1) {
+    if (Serial.available() > 0) {
+      lcd.clear();
+      grabarPalabra();
+      empezar();
+      Serial.println("");
+    }
+  }
+  else {
+    lcd.clear();
+    encendido = encendido - 2;
+    lcd.print("SISTEMA OFF");
+    Serial.println("SISTEMA OFF");
+    Serial.end();
+  }
+}
+
+void grabarPalabra() {
+  Serial.println("Ingrese la palabra");
+  t_espera();
+  palabra = Serial.readString();
+  tamanio = palabra.length();
+  Serial.println("");
+}
+void empezar() {
+  char respuest;
+  Serial.println("Elija un juego (A,B;C):");
+  t_espera();
+  respuest = Serial.read();
+  if ((respuest == 'A') || (respuest == 'a')) {
+    juego1();
+  }
+  else {
+    if ((respuest == 'B') || (respuest == 'b')) {
+      juego2();
+    }
+    else {
+      if ((respuest == 'C') || (respuest == 'c')) {
+        juego3();
+      }
+      else {
+        Serial.println(" ");
+        grabarPalabra();
+      }
+    }
+  }
+}
+
+void juego1() {
+  int vel;
+  for ( int a = 1; a < 30; a++) {
+    lcd.setCursor(0, 1);
+    lcd.print("                 ");
+    lcd.setCursor(0, 0);
+    lcd.print(palabra);
+    vel = 150 - (a * 5);
+    delay(vel);
+    lcd.setCursor(0, 0);
+    lcd.print("                 ");
+    lcd.setCursor(0, 1);
+    lcd.print(palabra);
+    vel = 150 - (a * 5);
+    delay(vel);
+  }
+
+  lcd.clear();
+}
+void juego2() {
+  lcd.setCursor(16, 0);
+  lcd.print(palabra);
+  int k = 0;
+  for (; k < (17 + tamanio); k++) {
+    lcd.setCursor(16, 0); 
+    lcd.autoscroll();    
+    lcd.print(" ");    
+    delay(100);
+  }
+  lcd.noAutoscroll();
+  lcd.clear();
+}
+void juego3() {
+  int i = 0;
+  int j = 0;
+  char mensaje3[tamanio];
+  palabra.toCharArray(mensaje3, tamanio + 1);
+  for (; i < tamanio; i++) {
+    j = 1 - j;
+    lcd.setCursor(i, j);
+    lcd.print(mensaje3[i]);
+    delay(200);
+    lcd.setCursor(i, j);
+    lcd.print('*');
+  }
+  for (; i >= 0; i--) {
+    j = 1 - j;
+    lcd.setCursor(i, j);
+    lcd.print(mensaje3[i]);
+    delay(200);
+    lcd.setCursor(i, j);
+    lcd.print(" ");
+  }
+  lcd.clear();
+}
+
+void t_espera() {
+  for (; Serial.available() == 0; ) {
+  }
+}
+
+void interrumpir() {
+  encendido = encendido + 1;
+}
